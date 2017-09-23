@@ -2,7 +2,6 @@ package main
 
 import (
 	"testing"
-	"reflect"
 )
 
 func TestShadowing(t *testing.T) {
