@@ -34,7 +34,7 @@ ok      gitlab.com/rvasily/golang-2017-2/1/99_homework/tree     0.127s
 ```
 go run main.go . -f
 ├───main.go (vary)
-├───main_test.go (1376b)
+├───main_test.go (1318b)
 └───testdata
 	├───project
 	│	├───file.txt (19b)

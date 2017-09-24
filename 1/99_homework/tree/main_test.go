@@ -6,7 +6,7 @@ import (
 )
 
 const testFullResult = `├───main.go (vary)
-├───main_test.go (1376b)
+├───main_test.go (1318b)
 └───testdata
 	├───project
 	│	├───file.txt (19b)
