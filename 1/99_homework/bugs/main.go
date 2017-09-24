@@ -38,7 +38,7 @@ func BadMap() (resultErr error) {
 	}()
 
 	var users map[int]string
-    users[100500] = "rvasily"
+	users[100500] = "rvasily"
 
 	return nil
 }
