@@ -2,12 +2,11 @@ package main
 
 import (
 	"os"
-	"fmt"
 	"sort"
-	"bytes"
 	"strconv"
 	"strings"
 	"path/filepath"
+	"io"
 )
 
 type Node struct {
@@ -64,8 +63,8 @@ func stringifyNodes(nodes []Node, spaces []bool) (result string) {
 	return
 }
 
-func PrintTree(buf *bytes.Buffer, node Node) {
-	buf.WriteString(node.String())
+func PrintTree(out io.Writer, node Node) {
+	out.Write([]byte(node.String()))
 }
 
 func ReadFolder(dir string, printFiles bool) (root Node, err error) {
@@ -116,25 +115,24 @@ func readFolder(dir string, printFiles bool) ([]Node, error) {
 	return nodes, nil
 }
 
-func dirTree(buf *bytes.Buffer, path string, printFiles bool) error {
+func dirTree(out io.Writer, path string, printFiles bool) error {
 	obj, err := ReadFolder(path, printFiles)
 	if err != nil {
 		return err
 	}
-	PrintTree(buf, obj)
+	PrintTree(out, obj)
 	return nil
 }
 
 func main() {
-	buf := new(bytes.Buffer)
+	out := os.Stdout
 	if !(len(os.Args) == 2 || len(os.Args) == 3) {
 		panic("usage go run main.go . [-f]")
 	}
 	path := os.Args[1]
 	printFiles := len(os.Args) == 3 && os.Args[2] == "-f"
-	if err := dirTree(buf, path, printFiles); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return
+	err := dirTree(out, path, printFiles)
+	if err != nil {
+		panic(err.Error())
 	}
-	fmt.Fprint(os.Stdout, buf)
 }
