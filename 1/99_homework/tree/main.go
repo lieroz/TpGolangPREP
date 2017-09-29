@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
-	"path/filepath"
 	"os"
+	"fmt"
 	"sort"
 	"bytes"
 	"strconv"
 	"strings"
+	"path/filepath"
 )
 
 type Node struct {
@@ -136,4 +136,5 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
+	fmt.Fprint(os.Stdout, buf)
 }
