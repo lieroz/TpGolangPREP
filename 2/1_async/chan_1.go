@@ -3,21 +3,17 @@ package main
 import "fmt"
 
 func main() {
+	ch1 := make(chan int, 1)
 
-	ch1 := make(chan int)
-
-	go func(in <-chan int) {
+	go func(in chan int) {
 		val := <-in
-		fmt.Println(val)
-		fmt.Println("after read from chan")
+		fmt.Println("GO: get from chan", val)
+		fmt.Println("GO: after read from chan")
 	}(ch1)
 
-	ch1 <- 1
+	ch1 <- 42
+	ch1 <- 100500
 
-	// вызывает дедлок на небуферизированном канале
-	fmt.Println(<-ch1)
-
-	fmt.Println("after put to chan")
-
+	fmt.Println("MAIN: after put to chan")
 	fmt.Scanln()
 }

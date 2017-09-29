@@ -4,25 +4,24 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
+	"time"
 )
 
 const (
-	iterationsNum = 7
-	goroutinesNum = 5
+	iterationsNum = 4
+	goroutinesNum = 4
 )
-
-func doSomeWork(in int) {
-	for j := 0; j < iterationsNum; j++ {
-		fmt.Printf(formatWork(in, j))
-		runtime.Gosched()
-	}
-}
 
 func main() {
 	for i := 0; i < goroutinesNum; i++ {
-		go doSomeWork(i)
+		go func(th int) {
+			for j := 0; j < iterationsNum; j++ {
+				fmt.Printf(formatWork(th, j))
+				time.Sleep(time.Millisecond)
+			}
+		}(i)
 	}
-	fmt.Scanln()
+	// fmt.Scanln()
 }
 
 func formatWork(in, j int) string {
@@ -32,6 +31,6 @@ func formatWork(in, j int) string {
 		"iter", j, strings.Repeat("■", j))
 }
 
-func dummy() {
-	runtime.Gosched()
+func imports() {
+	fmt.Println(time.Millisecond, runtime.NumCPU())
 }

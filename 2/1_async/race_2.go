@@ -5,20 +5,20 @@ import (
 	"sync"
 )
 
-var counters = map[int]int{}
-
 func main() {
+	var counters = map[int]int{}
 	mu := &sync.Mutex{}
 	for i := 0; i < 5; i++ {
-		go func(th int, protector *sync.Mutex) {
+		go func(counters map[int]int, th int, mu *sync.Mutex) {
 			for j := 0; j < 5; j++ {
-				protector.Lock()
+				mu.Lock()
 				counters[th*10+j]++
-				protector.Unlock()
+				mu.Unlock()
 			}
-		}(i, mu)
+		}(counters, i, mu)
 	}
-
 	fmt.Scanln()
-	fmt.Println("total result", counters)
+	mu.Lock()
+	fmt.Println("counters result", counters)
+	mu.Unlock()
 }
