@@ -1,0 +1,4 @@
+to update from parent repo:
+git remote add some_name_here_that_will_be_used_for_refering_repo https://some_repo.git
+git fetch some_name_here_that_will_be_used_for_refering_repo
+git merge some_name_here_that_will_be_used_for_refering_repo/master

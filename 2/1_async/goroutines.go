@@ -21,7 +21,7 @@ func main() {
 			}
 		}(i)
 	}
-	// fmt.Scanln()
+	fmt.Scanln()
 }
 
 func formatWork(in, j int) string {

@@ -7,7 +7,7 @@ import (
 
 func getComments() chan string {
 	// надо использовать буферизированный канал
-	result := make(chan string, 1)
+	result := make(chan string)
 	go func(out chan<- string) {
 		time.Sleep(2 * time.Second)
 		fmt.Println("async operation ready, return comments")
@@ -21,8 +21,6 @@ func getPage() {
 
 	time.Sleep(1 * time.Second)
 	fmt.Println("get related articles")
-
-	return
 
 	commentsData := <-resultCh
 	fmt.Println("main goroutine:", commentsData)
