@@ -16,12 +16,12 @@ func ExecutePipeline(jobs ...job) {
 
 }
 
-var m sync.Mutex // CRUTCH
+var m sync.Mutex
 
 func SingleHash(in, out chan interface{}) {
 	data := <-out
 	result := strconv.FormatInt(int64(data.(int)), base)
-	ch := make(chan string, 1)
+	ch := make(chan string)
 	go func(ch chan string) {
 		ch <- DataSignerCrc32(<-ch)
 	}(ch)
@@ -29,8 +29,9 @@ func SingleHash(in, out chan interface{}) {
 	m.Lock()
 	md5 := DataSignerMd5(result)
 	m.Unlock()
+	crc32md5 := DataSignerCrc32(md5)
 	crc32 := <-ch
-	in <- crc32 + "~" + DataSignerCrc32(md5)
+	in <- crc32 + "~" + crc32md5
 }
 
 func MultiHash(in, out chan interface{}) {
@@ -65,14 +66,14 @@ func CombineResults(in, out chan interface{}) {
 
 func main() {
 	start := time.Now()
-	in := make(chan interface{}, 1)
+	in := make(chan interface{}, 3)
 	out := make(chan interface{})
 	inputData := []int{0, 1, 1, 2, 3, 5, 8}
 	for _, i := range inputData {
 		go SingleHash(in, out)
 		go MultiHash(in, out)
 		out <- i
-		runtime.Gosched() // CRUTCH
+		runtime.Gosched()
 	}
 	CombineResults(in, out)
 	fmt.Println(<-in)
