@@ -5,12 +5,14 @@ import (
 	"strconv"
 	"sync"
 	"time"
-	"runtime"
 	"sort"
 	"strings"
 )
 
-const base = 10
+const (
+	th   = 6
+	base = 10
+)
 
 func ExecutePipeline(jobs ...job) {
 
@@ -36,29 +38,24 @@ func SingleHash(in, out chan interface{}) {
 
 func MultiHash(in, out chan interface{}) {
 	singleHash := (<-in).(string)
-	var chs [6]chan string
-	var result string
-	for i := 0; i < 6; i++ {
+	var chs [th]chan string
+	var resultHash string
+	for i := 0; i < th; i++ {
 		chs[i] = make(chan string)
 		go func(ch chan string, i int) {
 			ch <- DataSignerCrc32(strconv.FormatInt(int64(i), base) + singleHash)
 		}(chs[i], i)
 	}
-	for i := 0; i < 6; i++ {
-		result += <-chs[i]
+	for i := 0; i < th; i++ {
+		resultHash += <-chs[i]
 	}
-	out <- result
+	out <- resultHash
 }
 
 func CombineResults(in, out chan interface{}) {
-	var counter int
 	result := make([]string, 0)
-	for i := range out {
-		counter++
-		result = append(result, i.(string))
-		if counter >= 7 {
-			close(out)
-		}
+	for hash := range out {
+		result = append(result, hash.(string))
 	}
 	sort.Strings(result)
 	in <- strings.Join(result[:], "_")
@@ -66,16 +63,22 @@ func CombineResults(in, out chan interface{}) {
 
 func main() {
 	start := time.Now()
-	in := make(chan interface{}, 3)
-	out := make(chan interface{})
+	in := make(chan interface{})
+	out := make(chan interface{}, MaxInputDataLen)
 	inputData := []int{0, 1, 1, 2, 3, 5, 8}
+	var wg sync.WaitGroup
 	for _, i := range inputData {
 		go SingleHash(in, out)
-		go MultiHash(in, out)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			MultiHash(in, out)
+		}()
 		out <- i
-		runtime.Gosched()
 	}
-	CombineResults(in, out)
+	wg.Wait()
+	close(out)
+	go CombineResults(in, out)
 	fmt.Println(<-in)
 	fmt.Println(time.Since(start))
 }
