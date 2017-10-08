@@ -14,12 +14,19 @@ const (
 	Base = 10
 )
 
-//func ExecutePipeline(jobs ...job) {
-//	var channels [len(jobs)]interface{}
-//	for i := 0; i < len(jobs); i++ {
-//		channels[i] = make(chan interface{}, MaxInputDataLen)
-//	}
-//}
+func ExecutePipeline(jobs ...job) {
+	channels := make([]chan interface{}, 0)
+	for i := 0; i < len(jobs)+1; i++ {
+		channels = append(channels, make(chan interface{}, MaxInputDataLen))
+	}
+	for i, j := range jobs {
+		go func(jb job, in, out chan interface{}) {
+			jb(in, out)
+			close(out)
+		}(j, channels[i], channels[i+1])
+	}
+	fmt.Println(<-channels[len(jobs)])
+}
 
 var m sync.Mutex
 
@@ -48,7 +55,6 @@ func SingleHash(in, out chan interface{}) {
 		}()
 	}
 	wg.Wait()
-	close(out)
 }
 
 func multiHash(out chan interface{}, data string) {
@@ -77,7 +83,6 @@ func MultiHash(in, out chan interface{}) {
 		}()
 	}
 	wg.Wait()
-	close(out)
 }
 
 func CombineResults(in, out chan interface{}) {
@@ -89,22 +94,15 @@ func CombineResults(in, out chan interface{}) {
 	out <- strings.Join(result[:], "_")
 }
 
+func fill(in, out chan interface{}) {
+	inputData := []int{0, 1, 1, 2, 3, 5, 8}
+	for _, i := range inputData {
+		out <- i
+	}
+}
+
 func main() {
 	start := time.Now()
-	ch1 := make(chan interface{}, MaxInputDataLen)
-	ch2 := make(chan interface{}, MaxInputDataLen)
-	ch3 := make(chan interface{}, MaxInputDataLen)
-	ch4 := make(chan interface{}, MaxInputDataLen)
-	inputData := []int{0, 1, 1, 2, 3, 5, 8}
-	go func() {
-		for _, i := range inputData {
-			ch1 <- i
-		}
-		close(ch1)
-	}()
-	go SingleHash(ch1, ch2)
-	go MultiHash(ch2, ch3)
-	go CombineResults(ch3, ch4)
-	fmt.Println(<-ch4)
+	ExecutePipeline(job(fill), job(SingleHash), job(MultiHash), job(CombineResults))
 	fmt.Println(time.Since(start))
 }
