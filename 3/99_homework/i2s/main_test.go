@@ -132,6 +132,12 @@ func TestErrors(t *testing.T) {
 			&Simple{},
 			`[{"ID":42,"Username":"rvasily","Active":true}]`,
 		},
+		// Simple{} ( без амперсанта, т.е. структура, а не указатель на структуру )
+		// пришел не ссылочный тип - мы не сможем вернуть результат
+		ErrorCase{
+			Simple{},
+			`{"ID":42,"Username":"rvasily","Active":true}`,
+		},
 	}
 	for idx, item := range cases {
 		var tmpData interface{}
