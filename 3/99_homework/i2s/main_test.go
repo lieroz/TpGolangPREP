@@ -146,11 +146,12 @@ func TestErrors(t *testing.T) {
 		err := i2s(tmpData, item.Result)
 		outType := reflect.ValueOf(item.Result).Type()
 
-		if inType != outType {
-			t.Errorf("results type not match\nGot:\n%#v\nExpected:\n%#v", outType, inType)
-		}
 		if err == nil {
 			t.Errorf("[%d] expected error here %v", idx)
+			continue
+		}
+		if inType != outType {
+			t.Errorf("results type not match\nGot:\n%#v\nExpected:\n%#v", outType, inType)
 		}
 	}
 }
