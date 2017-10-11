@@ -2,20 +2,19 @@ package main
 
 type Dispatcher struct {
 	WorkerPool chan chan Job
-	maxWorkers int
+	MaxWorkers int
 }
 
-func NewDispatcher() *Dispatcher {
-	workersCount := 10
+func NewDispatcher(workersCount int) *Dispatcher {
 	pool := make(chan chan Job, workersCount)
 	return &Dispatcher{
 		WorkerPool: pool,
-		maxWorkers: workersCount,
+		MaxWorkers: workersCount,
 	}
 }
 
 func (d *Dispatcher) Run() {
-	for i := 0; i < d.maxWorkers; i++ {
+	for i := 0; i < d.MaxWorkers; i++ {
 		worker := NewWorker(d.WorkerPool)
 		worker.Start()
 	}

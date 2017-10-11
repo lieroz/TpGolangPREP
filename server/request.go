@@ -18,13 +18,8 @@ var readerPool = sync.Pool{
 }
 
 type Request struct {
-	Method  *string
-	AbsPath *string
-}
-
-func (r *Request) Reset() {
-	r.Method = nil
-	r.AbsPath = nil
+	Method  string
+	AbsPath string
 }
 
 func (r *Request) Parse(conn net.Conn) error {
@@ -46,14 +41,14 @@ func (r *Request) Parse(conn net.Conn) error {
 	if !checkUrl(reqParams[1]) {
 		return ErrBadRequest
 	}
-	r.Method = &reqParams[0]
+	r.Method = reqParams[0]
 	if strings.Contains(reqParams[1], "?") {
 		path := reqParams[1][:strings.Index(reqParams[1], "?")]
-		r.AbsPath = &path
+		r.AbsPath = path
 	} else {
-		r.AbsPath = &reqParams[1]
+		r.AbsPath = reqParams[1]
 	}
-	if *r.AbsPath, err = url.QueryUnescape(*r.AbsPath); err != nil {
+	if r.AbsPath, err = url.QueryUnescape(r.AbsPath); err != nil {
 		log.Fatalln("error decoding query:", err)
 	}
 	return nil

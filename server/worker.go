@@ -4,24 +4,28 @@ import (
 	"net"
 )
 
+const (
+	QueueSize = 100
+)
+
 type Job struct {
-	conn       net.Conn
-	workerFunc func(conn net.Conn)
+	Conn       net.Conn
+	WorkerFunc func(conn net.Conn)
 }
 
-var JobQueue = make(chan Job, 10)
+var JobQueue = make(chan Job, QueueSize)
 
 type Worker struct {
 	WorkerPool chan chan Job
 	JobChannel chan Job
-	quit       chan bool
+	Quit       chan bool
 }
 
 func NewWorker(workerPool chan chan Job) Worker {
 	return Worker{
 		WorkerPool: workerPool,
 		JobChannel: make(chan Job),
-		quit:       make(chan bool),
+		Quit:       make(chan bool),
 	}
 }
 
@@ -31,8 +35,8 @@ func (w Worker) Start() {
 			w.WorkerPool <- w.JobChannel
 			select {
 			case job := <-w.JobChannel:
-				job.workerFunc(job.conn)
-			case <-w.quit:
+				job.WorkerFunc(job.Conn)
+			case <-w.Quit:
 				return
 			}
 		}
@@ -41,6 +45,6 @@ func (w Worker) Start() {
 
 func (w Worker) Stop() {
 	go func() {
-		w.quit <- true
+		w.Quit <- true
 	}()
 }

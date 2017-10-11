@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"sync"
 	"io"
 )
 
@@ -16,12 +15,14 @@ const (
 type Server struct {
 	Port    string
 	WebRoot string
+	Workers int
 }
 
-func NewServer(port, webRoot string) *Server {
+func NewServer(port, webRoot string, workers int) *Server {
 	return &Server{
 		Port:    port,
 		WebRoot: webRoot,
+		Workers: workers,
 	}
 }
 
@@ -30,7 +31,7 @@ func (s *Server) ListenAndServe() {
 	if err != nil {
 		log.Fatalln("server start error:", err)
 	}
-	dispatcher := NewDispatcher()
+	dispatcher := NewDispatcher(s.Workers)
 	dispatcher.Run()
 	log.Println("server started on port:", s.Port)
 	for {
@@ -38,37 +39,20 @@ func (s *Server) ListenAndServe() {
 		if err != nil {
 			log.Fatalln("accept connection error:", err)
 		}
-		//go s.serve(conn)
 		job := Job{
-			conn:       conn,
-			workerFunc: s.serve,
+			Conn:       conn,
+			WorkerFunc: s.serve,
 		}
 		JobQueue <- job
 	}
 }
 
-var reqPool = sync.Pool{
-	New: func() interface{} {
-		return new(Request)
-	},
-}
-
-var respPool = sync.Pool{
-	New: func() interface{} {
-		return &Response{
-			Code:        StatusOk,
-			Description: "OK",
-		}
-	},
-}
-
 func (s *Server) serve(conn net.Conn) {
 	defer conn.Close()
-	req, resp := reqPool.Get().(*Request), respPool.Get().(*Response)
-	defer req.Reset()
-	defer reqPool.Put(req)
-	defer resp.Reset()
-	defer respPool.Put(resp)
+	req, resp := new(Request), &Response{
+		Code: StatusOk,
+		Description: "OK",
+	}
 	err := req.Parse(conn)
 	if err != nil {
 		if err == io.EOF {
@@ -79,11 +63,11 @@ func (s *Server) serve(conn net.Conn) {
 		resp.WriteCommonHeaders(conn)
 		return
 	}
-	var isIndex = strings.HasSuffix(*req.AbsPath, "/")
+	var isIndex = strings.HasSuffix(req.AbsPath, "/")
 	if isIndex {
-		*req.AbsPath += IndexPage
+		req.AbsPath += IndexPage
 	}
-	f, err := os.Open(s.WebRoot + *req.AbsPath)
+	f, err := os.Open(s.WebRoot + req.AbsPath)
 	defer f.Close()
 	if err != nil {
 		if isIndex {
@@ -94,7 +78,7 @@ func (s *Server) serve(conn net.Conn) {
 		resp.WriteCommonHeaders(conn)
 		return
 	}
-	s.serveMethod(*req.Method, resp, conn, f)
+	s.serveMethod(req.Method, resp, conn, f)
 }
 
 func (s *Server) serveMethod(method string, resp *Response, conn net.Conn, f *os.File) {
