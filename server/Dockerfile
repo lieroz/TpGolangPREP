@@ -6,4 +6,4 @@ RUN mkdir -p /var/www/html &&\
  git clone https://github.com/init/http-test-suite.git &&\
  mv ./http-test-suite/httptest /var/www/html
 
-EXPOSE 80
+EXPOSE 8080
