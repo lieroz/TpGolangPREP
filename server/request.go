@@ -26,8 +26,8 @@ func (r *Request) Parse(conn net.Conn) error {
 	reader := readerPool.Get().(*bufio.Reader)
 	reader.Reset(conn)
 	reqLine, err := tp.NewReader(reader).ReadLine()
-	defer reader.Reset(nil)
-	defer readerPool.Put(reader)
+	reader.Reset(nil)
+	readerPool.Put(reader)
 	if err != nil {
 		if err == io.EOF {
 			return err

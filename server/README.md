@@ -1,6 +1,6 @@
-# Highload course
+# Technopark 3 semester
 
-## HTTP server
+## Highload HW 1: HTTP server
 
 <a name="drun"></a>
 ### Server start options
