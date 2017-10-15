@@ -117,7 +117,7 @@ func (srv *SearchClient) FindUsers(req SearchRequest) (*SearchResponse, error) {
 		if errResp.Error == ErrorBadOrderField {
 			return nil, fmt.Errorf("OrderFeld %s invalid", req.OrderField)
 		}
-		return nil, fmt.Errorf("unknown bad request error: %s", err)
+		return nil, fmt.Errorf("unknown bad request error: %s", errResp.Error)
 	}
 
 	data := []User{}
