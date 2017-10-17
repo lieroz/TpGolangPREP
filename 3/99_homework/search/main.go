@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"strings"
 	// "log"
 	"github.com/json-iterator/go"
 	"bufio"
+	"strconv"
 )
 
 type User struct {
@@ -29,10 +29,8 @@ func FastSearch(out io.Writer) {
 	scanner := bufio.NewScanner(file)
 
 	seenBrowsers := []string{}
-	uniqueBrowsers := 0
-	foundUsers := ""
-	i := 0
-
+	uniqueBrowsers ,i  := 0, 0
+	out.Write([]byte("found users:\n"))
 	for scanner.Scan() {
 		user := new(User)
 		// fmt.Printf("%v %v\n", err, line)
@@ -78,10 +76,8 @@ func FastSearch(out io.Writer) {
 
 		// log.Println("Android and MSIE user:", user["name"], user["email"])
 		email := strings.Replace(user.Email, "@", " [at] ", -1)
-		foundUsers += fmt.Sprintf("[%d] %s <%s>\n", i, user.Name, email)
+		out.Write([]byte("[" + strconv.Itoa(i) + "] " + user.Name + " <" + email + ">\n"))
 		i++
 	}
-
-	fmt.Fprintln(out, "found users:\n"+foundUsers)
-	fmt.Fprintln(out, "Total unique browsers", len(seenBrowsers))
+	out.Write([]byte("\nTotal unique browsers " + strconv.Itoa(len(seenBrowsers)) + "\n"))
 }
