@@ -50,10 +50,9 @@ func FastSearch(out io.Writer) {
 			check := false
 			if strings.Contains(browser, "Android") {
 				isAndroid = true
+				check = true
 			} else if strings.Contains(browser, "MSIE") {
 				isMSIE = true
-			}
-			if isAndroid || isMSIE {
 				check = true
 			}
 			if check {
