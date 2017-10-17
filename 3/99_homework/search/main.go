@@ -30,10 +30,10 @@ func FastSearch(out io.Writer) {
 
 	seenBrowsers := []string{}
 	uniqueBrowsers ,i  := 0, 0
+	user := new(User)
 	out.Write([]byte("found users:\n"))
+
 	for scanner.Scan() {
-		user := new(User)
-		// fmt.Printf("%v %v\n", err, line)
 		iter := jsoniter.ConfigFastest.BorrowIterator(scanner.Bytes())
 		iter.ReadVal(user)
 		jsoniter.ConfigFastest.ReturnIterator(iter)
@@ -43,7 +43,6 @@ func FastSearch(out io.Writer) {
 
 		isAndroid := false
 		isMSIE := false
-
 		for _, browser := range user.Browsers {
 			check := false
 			if strings.Contains(browser, "Android") {
@@ -62,7 +61,6 @@ func FastSearch(out io.Writer) {
 					}
 				}
 				if notSeenBefore {
-					// log.Printf("SLOW New browser: %s, first seen: %s", browser, user["name"])
 					seenBrowsers = append(seenBrowsers, browser)
 					uniqueBrowsers++
 				}
@@ -74,10 +72,10 @@ func FastSearch(out io.Writer) {
 			continue
 		}
 
-		// log.Println("Android and MSIE user:", user["name"], user["email"])
 		email := strings.Replace(user.Email, "@", " [at] ", -1)
 		out.Write([]byte("[" + strconv.Itoa(i) + "] " + user.Name + " <" + email + ">\n"))
 		i++
 	}
+
 	out.Write([]byte("\nTotal unique browsers " + strconv.Itoa(len(seenBrowsers)) + "\n"))
 }
