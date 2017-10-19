@@ -193,7 +193,7 @@ func (u *Users) getUsers(params *QueryParams) []User {
 			users = append(users, user)
 		}
 	}
-	if params.OrderBy < 0 {
+	if params.OrderBy == OrderByDesc {
 		if params.OrderField == "Id" {
 			sort.Sort(sort.Reverse(ById(users)))
 		} else if params.OrderField == "Age" {
@@ -201,7 +201,7 @@ func (u *Users) getUsers(params *QueryParams) []User {
 		} else {
 			sort.Sort(sort.Reverse(ByName(users)))
 		}
-	} else if params.OrderBy > 0 {
+	} else if params.OrderBy == OrderByAsc {
 		if params.OrderField == "Id" {
 			sort.Sort(ById(users))
 		} else if params.OrderField == "Age" {

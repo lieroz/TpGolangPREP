@@ -40,9 +40,9 @@ type SearchErrorResponse struct {
 }
 
 const (
-	OrderByAsc  = -1
+	OrderByDesc = -1
 	OrderByAsIs = 0
-	OrderByDesc = 1
+	OrderByAsc  = 1
 
 	ErrorBadOrderField = `OrderField invalid`
 	MaxLimit           = 25
