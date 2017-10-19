@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	orderAsc = iota
+	orderAsc  = iota
 	orderDesc
 )
 
@@ -23,11 +23,11 @@ var (
 )
 
 type User struct {
-	Id     int
-	Name   string
-	Age    int
-	About  string
-	Gender string
+	Id     int    `json:"id"`
+	Name   string `json:"name"`
+	Age    int    `json:"age"`
+	About  string `json:"about"`
+	Gender string `json:"gender"`
 }
 
 type SearchResponse struct {
@@ -45,6 +45,7 @@ const (
 	OrderByDesc = 1
 
 	ErrorBadOrderField = `OrderField invalid`
+	MaxLimit           = 25
 )
 
 type SearchRequest struct {
@@ -71,8 +72,8 @@ func (srv *SearchClient) FindUsers(req SearchRequest) (*SearchResponse, error) {
 	if req.Limit < 0 {
 		return nil, fmt.Errorf("limit must be > 0")
 	}
-	if req.Limit > 25 {
-		req.Limit = 25
+	if req.Limit > MaxLimit {
+		req.Limit = MaxLimit
 	}
 	if req.Offset < 0 {
 		return nil, fmt.Errorf("limit must be > 0")
@@ -82,14 +83,13 @@ func (srv *SearchClient) FindUsers(req SearchRequest) (*SearchResponse, error) {
 	req.Limit++
 
 	searcherParams.Add("limit", strconv.Itoa(req.Limit))
-	searcherParams.Add("ofset", strconv.Itoa(req.Offset))
+	searcherParams.Add("offset", strconv.Itoa(req.Offset))
 	searcherParams.Add("query", req.Query)
 	searcherParams.Add("order_field", req.OrderField)
 	searcherParams.Add("order_by", strconv.Itoa(req.OrderBy))
 
 	searcherReq, err := http.NewRequest("GET", srv.URL+"?"+searcherParams.Encode(), nil)
 	searcherReq.Header.Add("AccessToken", srv.AccessToken)
-
 	resp, err := client.Do(searcherReq)
 	if err != nil {
 		if err, ok := err.(net.Error); ok && err.Timeout() {
