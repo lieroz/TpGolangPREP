@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	ErrInvalidOrderField = errors.New("invalid order field")
+	ErrInvalidOrderField = errors.New(ErrorBadOrderField)
 )
 
 type UserModel struct {
@@ -123,11 +123,12 @@ func (qp *QueryParams) getQueryParams(r *http.Request) error {
 	}
 	if orderField, ok := r.URL.Query()["order_field"]; ok {
 		qp.OrderField = orderField[0]
-		if !checkOrderField(qp.OrderField) {
+		if qp.OrderField == "" {
+			qp.OrderField = "Name"
+		} else if !checkOrderField(qp.OrderField) {
 			return ErrInvalidOrderField
+
 		}
-	} else {
-		qp.OrderField = "Name"
 	}
 	if orderBy, ok := r.URL.Query()["order_by"]; ok {
 		if qp.OrderBy, err = strconv.Atoi(orderBy[0]); err != nil {
@@ -177,6 +178,30 @@ func (u *Users) getSubList(params *QueryParams) {
 	u.List = u.List[params.Offset:limit]
 }
 
+func sortUsers(params *QueryParams, users []User) {
+	switch params.OrderBy {
+	case OrderByDesc:
+		switch params.OrderField {
+		case "Id":
+			sort.Sort(sort.Reverse(ById(users)))
+		case "Age":
+			sort.Sort(sort.Reverse(ByAge(users)))
+		default:
+			sort.Sort(sort.Reverse(ByName(users)))
+		}
+	case OrderByAsIs:
+	case OrderByAsc:
+		switch params.OrderField {
+		case "Id":
+			sort.Sort(ById(users))
+		case "Age":
+			sort.Sort(ByAge(users))
+		default:
+			sort.Sort(ByName(users))
+		}
+	}
+}
+
 func (u *Users) getUsers(params *QueryParams) []User {
 	users := make([]User, 0)
 	for i := 0; i < len(u.List); i++ {
@@ -193,23 +218,7 @@ func (u *Users) getUsers(params *QueryParams) []User {
 			users = append(users, user)
 		}
 	}
-	if params.OrderBy == OrderByDesc {
-		if params.OrderField == "Id" {
-			sort.Sort(sort.Reverse(ById(users)))
-		} else if params.OrderField == "Age" {
-			sort.Sort(sort.Reverse(ByAge(users)))
-		} else {
-			sort.Sort(sort.Reverse(ByName(users)))
-		}
-	} else if params.OrderBy == OrderByAsc {
-		if params.OrderField == "Id" {
-			sort.Sort(ById(users))
-		} else if params.OrderField == "Age" {
-			sort.Sort(ByAge(users))
-		} else {
-			sort.Sort(ByName(users))
-		}
-	}
+	sortUsers(params, users)
 	return users
 }
 
@@ -220,7 +229,16 @@ func SearchServer(w http.ResponseWriter, r *http.Request) {
 	}
 	params := new(QueryParams)
 	if err := params.getQueryParams(r); err != nil {
+		errResp := SearchErrorResponse{
+			Error: err.Error(),
+		}
 		w.WriteHeader(http.StatusBadRequest)
+		buf, err := json.Marshal(&errResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Write(buf)
 		return
 	}
 	users := new(Users)

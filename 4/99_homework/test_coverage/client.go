@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -12,13 +11,7 @@ import (
 	"time"
 )
 
-const (
-	orderAsc  = iota
-	orderDesc
-)
-
 var (
-	errTest = errors.New("testing")
 	client  = &http.Client{Timeout: time.Second}
 )
 
@@ -36,7 +29,7 @@ type SearchResponse struct {
 }
 
 type SearchErrorResponse struct {
-	Error string
+	Error string `json:"error"`
 }
 
 const (
@@ -76,11 +69,11 @@ func (srv *SearchClient) FindUsers(req SearchRequest) (*SearchResponse, error) {
 		req.Limit = MaxLimit
 	}
 	if req.Offset < 0 {
-		return nil, fmt.Errorf("limit must be > 0")
+		return nil, fmt.Errorf("offset must be > 0")
 	}
 
 	//нужно для получения следующей записи, на основе которой мы скажем - можно показать переключатель следующей страницы или нет
-	req.Limit++
+	//req.Limit++
 
 	searcherParams.Add("limit", strconv.Itoa(req.Limit))
 	searcherParams.Add("offset", strconv.Itoa(req.Offset))
@@ -115,22 +108,20 @@ func (srv *SearchClient) FindUsers(req SearchRequest) (*SearchResponse, error) {
 			return nil, fmt.Errorf("cant unpack error json: %s", err)
 		}
 		if errResp.Error == ErrorBadOrderField {
-			return nil, fmt.Errorf("OrderFeld %s invalid", req.OrderField)
+			return nil, fmt.Errorf("OrderField %s invalid", req.OrderField)
 		}
 		return nil, fmt.Errorf("unknown bad request error: %s", errResp.Error)
 	}
 
-	data := []User{}
-	err = json.Unmarshal(body, &data)
+	result := SearchResponse{}
+	err = json.Unmarshal(body, &result.Users)
 	if err != nil {
 		return nil, fmt.Errorf("cant unpack result json: %s", err)
 	}
 
-	result := SearchResponse{}
-	result.Users = data[0:len(data)]
-	if len(data) > req.Limit {
-		result.NextPage = true
-	}
+	//if len(result.Users) > req.Limit {
+	//	result.NextPage = true
+	//}
 
 	// fmt.Printf("%+v", data)
 
