@@ -4,6 +4,7 @@ import (
 	"testing"
 	"net/http/httptest"
 	"net/http"
+	"time"
 )
 
 func TestBadToken(t *testing.T) {
@@ -100,16 +101,16 @@ func TestOrderBy(t *testing.T) {
 	requests := []SearchRequest{
 		{
 			OrderField: "Id",
-			OrderBy: 1,
+			OrderBy:    1,
 		}, {
 			OrderField: "Id",
-			OrderBy: -1,
+			OrderBy:    -1,
 		}, {
 			OrderField: "Age",
-			OrderBy: 1,
+			OrderBy:    1,
 		}, {
 			OrderField: "Age",
-			OrderBy: -1,
+			OrderBy:    -1,
 		}, {
 			OrderBy: 1,
 		}, {
@@ -127,5 +128,88 @@ func TestOrderBy(t *testing.T) {
 		if err != nil {
 			t.Errorf("%s", err)
 		}
+	}
+}
+
+func TestCrash(t *testing.T) {
+	req := SearchRequest{}
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer ts.Close()
+	sc := &SearchClient{
+		AccessToken: CorrectAccessToken,
+		URL:         ts.URL,
+	}
+	_, err := sc.FindUsers(req)
+	if err == nil {
+		t.Errorf("%s", err)
+	}
+}
+
+func TestTimeout(t *testing.T) {
+	req := SearchRequest{}
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(time.Second * 3)
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer ts.Close()
+	sc := &SearchClient{
+		AccessToken: CorrectAccessToken,
+		URL:         ts.URL,
+	}
+	_, err := sc.FindUsers(req)
+	if err == nil {
+		t.Errorf("%s", err)
+	}
+}
+
+func TestBadRequestUnpackJSON(t *testing.T) {
+	req := SearchRequest{}
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+	defer ts.Close()
+	sc := &SearchClient{
+		AccessToken: CorrectAccessToken,
+		URL:         ts.URL,
+	}
+	_, err := sc.FindUsers(req)
+	if err == nil {
+		t.Errorf("%s", err)
+	}
+}
+
+func TestBadRequestUnknownError(t *testing.T) {
+	req := SearchRequest{}
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"msg": "lol"}`))
+	}))
+	defer ts.Close()
+	sc := &SearchClient{
+		AccessToken: CorrectAccessToken,
+		URL:         ts.URL,
+	}
+	_, err := sc.FindUsers(req)
+	if err == nil {
+		t.Errorf("%s", err)
+	}
+}
+
+func TestOkUnpackJSON(t *testing.T) {
+	req := SearchRequest{}
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"msg": "lol"}`))
+	}))
+	defer ts.Close()
+	sc := &SearchClient{
+		AccessToken: CorrectAccessToken,
+		URL:         ts.URL,
+	}
+	_, err := sc.FindUsers(req)
+	if err == nil {
+		t.Errorf("%s", err)
 	}
 }

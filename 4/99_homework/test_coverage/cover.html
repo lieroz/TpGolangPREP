@@ -54,7 +54,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">test_coverage/client.go (86.1%)</option>
+				<option value="file0">test_coverage/client.go (100.0%)</option>
 				
 				<option value="file1">test_coverage/main.go (0.0%)</option>
 				
@@ -159,7 +159,7 @@ func (srv *SearchClient) FindUsers(req SearchRequest) (*SearchResponse, error) <
         searcherReq.Header.Add("AccessToken", srv.AccessToken)
         resp, err := client.Do(searcherReq)
         if err != nil </span><span class="cov8" title="1">{
-                if err, ok := err.(net.Error); ok &amp;&amp; err.Timeout() </span><span class="cov0" title="0">{
+                if err, ok := err.(net.Error); ok &amp;&amp; err.Timeout() </span><span class="cov8" title="1">{
                         return nil, fmt.Errorf("timeout for %s", searcherParams.Encode())
                 }</span>
                 <span class="cov8" title="1">return nil, fmt.Errorf("unknown error %s", err)</span>
@@ -173,23 +173,23 @@ func (srv *SearchClient) FindUsers(req SearchRequest) (*SearchResponse, error) <
         switch resp.StatusCode </span>{
         case http.StatusUnauthorized:<span class="cov8" title="1">
                 return nil, fmt.Errorf("Bad AccessToken")</span>
-        case http.StatusInternalServerError:<span class="cov0" title="0">
+        case http.StatusInternalServerError:<span class="cov8" title="1">
                 return nil, fmt.Errorf("SearchServer fatal error")</span>
         case http.StatusBadRequest:<span class="cov8" title="1">
                 errResp := SearchErrorResponse{}
                 err = json.Unmarshal(body, &amp;errResp)
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov8" title="1">{
                         return nil, fmt.Errorf("cant unpack error json: %s", err)
                 }</span>
                 <span class="cov8" title="1">if errResp.Error == ErrorBadOrderField </span><span class="cov8" title="1">{
                         return nil, fmt.Errorf("OrderField %s invalid", req.OrderField)
                 }</span>
-                <span class="cov0" title="0">return nil, fmt.Errorf("unknown bad request error: %s", errResp.Error)</span>
+                <span class="cov8" title="1">return nil, fmt.Errorf("unknown bad request error: %s", errResp.Error)</span>
         }
 
         <span class="cov8" title="1">result := SearchResponse{}
         err = json.Unmarshal(body, &amp;result.Users)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return nil, fmt.Errorf("cant unpack result json: %s", err)
         }</span>
 
