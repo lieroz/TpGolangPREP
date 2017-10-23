@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"net/http"
 	"time"
+	"reflect"
 )
 
 func TestBadToken(t *testing.T) {
@@ -74,6 +75,49 @@ func TestMaxLimit(t *testing.T) {
 		if err != nil {
 			t.Errorf("%s", err)
 		}
+	}
+}
+
+func TestRequests(t *testing.T) {
+	expected := SearchResponse{
+		Users: []User{
+			{
+				Id: 0,
+				Name: "Boyd Wolf",
+				Age: 22,
+				About: "Nulla cillum enim voluptate consequat laborum esse excepteur occaecat commodo nostrud excepteur ut cupidatat. Occaecat minim incididunt ut proident ad sint nostrud ad laborum sint pariatur. Ut nulla commodo dolore officia. Consequat anim eiusmod amet commodo eiusmod deserunt culpa. Ea sit dolore nostrud cillum proident nisi mollit est Lorem pariatur. Lorem aute officia deserunt dolor nisi aliqua consequat nulla nostrud ipsum irure id deserunt dolore. Minim reprehenderit nulla exercitation labore ipsum.\n",
+				Gender: "male",
+			}, {
+				Id: 1,
+				Name: "Hilda Mayer",
+				Age: 21,
+				About: "Sit commodo consectetur minim amet ex. Elit aute mollit fugiat labore sint ipsum dolor cupidatat qui reprehenderit. Eu nisi in exercitation culpa sint aliqua nulla nulla proident eu. Nisi reprehenderit anim cupidatat dolor incididunt laboris mollit magna commodo ex. Cupidatat sit id aliqua amet nisi et voluptate voluptate commodo ex eiusmod et nulla velit.\n",
+				Gender: "female",
+			}, {
+				Id: 2,
+				Name: "Brooks Aguilar",
+				Age: 25,
+				About: "Velit ullamco est aliqua voluptate nisi do. Voluptate magna anim qui cillum aliqua sint veniam reprehenderit consectetur enim. Laborum dolore ut eiusmod ipsum ad anim est do tempor culpa ad do tempor. Nulla id aliqua dolore dolore adipisicing.\n",
+				Gender: "male",
+			},
+		},
+		NextPage: false,
+	}
+	req := SearchRequest{
+		Limit: 3,
+	}
+	ts := httptest.NewServer(http.HandlerFunc(SearchServer))
+	defer ts.Close()
+	sc := &SearchClient{
+		AccessToken: CorrectAccessToken,
+		URL:         ts.URL,
+	}
+	resp, err := sc.FindUsers(req)
+	if err != nil {
+		t.Errorf("%s", err)
+	}
+	if !reflect.DeepEqual(*resp, expected) {
+		t.Errorf("invalid result!")
 	}
 }
 
