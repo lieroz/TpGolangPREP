@@ -11,7 +11,6 @@ import (
 	"strings"
 	"encoding/json"
 	"strconv"
-	"golang.org/x/tools/container/intsets"
 )
 
 func generateImports(out *os.File, node *ast.File) {
@@ -55,7 +54,7 @@ func addFieldValidator(out *os.File, validatorArgs []string, field *ast.Field) {
 	var (
 		required             bool
 		enum, regular, param string
-		min, max             = 0, intsets.MaxInt
+		min, max             = -1, -1
 	)
 	fieldType, ok := field.Type.(*ast.Ident)
 	if !ok {
@@ -135,12 +134,16 @@ func addFieldValidator(out *os.File, validatorArgs []string, field *ast.Field) {
 		fmt.Fprintln(out, "\t}")
 	}
 	if isInt {
-		fmt.Fprintln(out, "\tif p."+field.Names[0].Name+" <= "+strconv.Itoa(min)+" {")
-		fmt.Fprintln(out, "\t\t"+`return fmt.Errorf("`+strings.ToLower(field.Names[0].Name)+` must be >= `+strconv.Itoa(min)+`")`)
-		fmt.Fprintln(out, "\t}")
-		fmt.Fprintln(out, "\tif p."+field.Names[0].Name+" >= "+strconv.Itoa(max)+" {")
-		fmt.Fprintln(out, "\t\t"+`return fmt.Errorf("`+strings.ToLower(field.Names[0].Name)+` must be <= `+strconv.Itoa(max)+`")`)
-		fmt.Fprintln(out, "\t}")
+		if min != -1 {
+			fmt.Fprintln(out, "\tif p."+field.Names[0].Name+" <= "+strconv.Itoa(min)+" {")
+			fmt.Fprintln(out, "\t\t"+`return fmt.Errorf("`+strings.ToLower(field.Names[0].Name)+` must be >= `+strconv.Itoa(min)+`")`)
+			fmt.Fprintln(out, "\t}")
+		}
+		if max != -1 {
+			fmt.Fprintln(out, "\tif p."+field.Names[0].Name+" >= "+strconv.Itoa(max)+" {")
+			fmt.Fprintln(out, "\t\t"+`return fmt.Errorf("`+strings.ToLower(field.Names[0].Name)+` must be <= `+strconv.Itoa(max)+`")`)
+			fmt.Fprintln(out, "\t}")
+		}
 	} else {
 		fmt.Fprintln(out, "\tif len(p."+field.Names[0].Name+") <= "+strconv.Itoa(min)+" {")
 		fmt.Fprintln(out, "\t\t"+`return fmt.Errorf("`+strings.ToLower(field.Names[0].Name)+` len must be >= `+strconv.Itoa(min)+`")`)

@@ -31,8 +31,8 @@ func (p *ProfileParams) validateAndFillProfileParams(args url.Values) (err error
 	if len(p.Login) == 0 {
 		return fmt.Errorf("login must me not empty")
 	}
-	if len(p.Login) <= 0 {
-		return fmt.Errorf("login len must be >= 0")
+	if len(p.Login) <= -1 {
+		return fmt.Errorf("login len must be >= -1")
 	}
 	return nil
 }
@@ -46,8 +46,8 @@ func (p *CreateParams) validateAndFillCreateParams(args url.Values) (err error) 
 		return fmt.Errorf("login len must be >= 10")
 	}
 	p.Name = args.Get("full_name")
-	if len(p.Name) <= 0 {
-		return fmt.Errorf("name len must be >= 0")
+	if len(p.Name) <= -1 {
+		return fmt.Errorf("name len must be >= -1")
 	}
 	p.Status = args.Get("status")
 	if len(p.Status) == 0 {
@@ -56,8 +56,8 @@ func (p *CreateParams) validateAndFillCreateParams(args url.Values) (err error) 
 	if !contains(strings.Split("user|moderator|admin", "|"), p.Status) {
 		return fmt.Errorf("status must be one of [user, moderator, admin]")
 	}
-	if len(p.Status) <= 0 {
-		return fmt.Errorf("status len must be >= 0")
+	if len(p.Status) <= -1 {
+		return fmt.Errorf("status len must be >= -1")
 	}
 	p.Age, err = strconv.Atoi(args.Get("age"))
 	if err != nil {
