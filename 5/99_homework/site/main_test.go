@@ -219,7 +219,7 @@ func TestGET(t *testing.T) {
 			Status: http.StatusBadRequest,
 			Auth:   true,
 			Result: CR{
-				"error": "login must be one of [user, moderator, admin]",
+				"error": "status must be one of [user, moderator, admin]",
 			},
 		},
 		Case{ // status по-умолчанию
