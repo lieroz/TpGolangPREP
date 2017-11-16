@@ -192,80 +192,82 @@ func generateValidators(out *os.File, node *ast.File) {
 }
 
 func generateHttpWrappers(out *os.File, file *ast.File) {
-	for _, node := range file.Decls {
-		currFunc, ok := node.(*ast.FuncDecl)
-		if !ok {
-			continue
-		}
-		if currFunc.Doc != nil {
-			methodSignature := new(MethodSignature)
-			for _, doc := range currFunc.Doc.List {
-				if strings.Contains(doc.Text, "apigen:api") {
-					start := strings.Index(doc.Text, "{")
-					end := strings.Index(doc.Text, "}") + 1
-					json.Unmarshal([]byte(doc.Text[start:end]), methodSignature)
-					fmt.Fprintln(out, "func (srv *MyApi) handler"+currFunc.Name.Name+"(w http.ResponseWriter, r *http.Request) {")
-					fmt.Fprintln(out, "\tresp := make(map[string]interface{})")
-					fmt.Fprintln(out, "\t"+`resp["error"] = ""`)
+	for _, s := range structures {
+		for _, node := range file.Decls {
+			currFunc, ok := node.(*ast.FuncDecl)
+			if !ok {
+				continue
+			}
+			if currFunc.Doc != nil {
+				methodSignature := new(MethodSignature)
+				for _, doc := range currFunc.Doc.List {
+					if strings.Contains(doc.Text, "apigen:api") {
+						start := strings.Index(doc.Text, "{")
+						end := strings.Index(doc.Text, "}") + 1
+						json.Unmarshal([]byte(doc.Text[start:end]), methodSignature)
+						fmt.Fprintln(out, "func (srv *"+s+") handler"+currFunc.Name.Name+"(w http.ResponseWriter, r *http.Request) {")
+						fmt.Fprintln(out, "\tresp := make(map[string]interface{})")
+						fmt.Fprintln(out, "\t"+`resp["error"] = ""`)
 
-					if len(methodSignature.Method) != 0 {
-						fmt.Fprintln(out, "\t"+`if r.Method != "`+methodSignature.Method+`" {`)
-						fmt.Fprintln(out, "\t\tw.WriteHeader(http.StatusNotAcceptable)")
-						fmt.Fprintln(out, "\t\t"+`resp["error"] = "bad method"`)
+						if len(methodSignature.Method) != 0 {
+							fmt.Fprintln(out, "\t"+`if r.Method != "`+methodSignature.Method+`" {`)
+							fmt.Fprintln(out, "\t\tw.WriteHeader(http.StatusNotAcceptable)")
+							fmt.Fprintln(out, "\t\t"+`resp["error"] = "bad method"`)
+							fmt.Fprintln(out, "\t\tbody, _ := json.Marshal(resp)")
+							fmt.Fprintln(out, "\t\tw.Write(body)")
+							fmt.Fprintln(out, "\t\treturn")
+							fmt.Fprintln(out, "\t}")
+						}
+
+						if methodSignature.Auth {
+							fmt.Fprintln(out, "\t"+`if r.Header.Get("X-Auth") != "100500" {`)
+							fmt.Fprintln(out, "\t\tw.WriteHeader(http.StatusForbidden)")
+							fmt.Fprintln(out, "\t\t"+`resp["error"] = "unauthorized"`)
+							fmt.Fprintln(out, "\t\tbody, _ := json.Marshal(resp)")
+							fmt.Fprintln(out, "\t\tw.Write(body)")
+							fmt.Fprintln(out, "\t\treturn")
+							fmt.Fprintln(out, "\t}")
+						}
+
+						fmt.Fprintln(out, "\tvar v url.Values")
+						fmt.Fprintln(out, "\tswitch r.Method {")
+						fmt.Fprintln(out, "\t"+`case "POST":`)
+						fmt.Fprintln(out, "\t\tv = parseCrutchyBody(r.Body)")
+						fmt.Fprintln(out, "\tdefault:")
+						fmt.Fprintln(out, "\t\tv = r.URL.Query()")
+						fmt.Fprintln(out, "\t}")
+
+						fmt.Fprintln(out, "\tvar params "+currFunc.Name.Name+"Params")
+						fmt.Fprintln(out, "\tif err := params.validateAndFill"+currFunc.Name.Name+"Params(v); err != nil {")
+						fmt.Fprintln(out, "\t\tw.WriteHeader(http.StatusBadRequest)")
+						fmt.Fprintln(out, "\t\t"+`resp["error"] = err.Error()`)
 						fmt.Fprintln(out, "\t\tbody, _ := json.Marshal(resp)")
 						fmt.Fprintln(out, "\t\tw.Write(body)")
 						fmt.Fprintln(out, "\t\treturn")
 						fmt.Fprintln(out, "\t}")
-					}
 
-					if methodSignature.Auth {
-						fmt.Fprintln(out, "\t"+`if r.Header.Get("X-Auth") != "100500" {`)
-						fmt.Fprintln(out, "\t\tw.WriteHeader(http.StatusForbidden)")
-						fmt.Fprintln(out, "\t\t"+`resp["error"] = "unauthorized"`)
+						fmt.Fprintln(out, "\tuser, err := srv."+currFunc.Name.Name+"(r.Context(), params)")
+
+						fmt.Fprintln(out, "\tif err != nil {")
+						fmt.Fprintln(out, "\t\tswitch err.(type) {")
+						fmt.Fprintln(out, "\t\tcase ApiError:")
+						fmt.Fprintln(out, "\t\t\tw.WriteHeader(err.(ApiError).HTTPStatus)")
+						fmt.Fprintln(out, "\t\t\t"+`resp["error"] = err.Error()`)
+						fmt.Fprintln(out, "\t\tdefault:")
+						fmt.Fprintln(out, "\t\t\tw.WriteHeader(http.StatusInternalServerError)")
+						fmt.Fprintln(out, "\t\t\t"+`resp["error"] = "bad user"`)
+						fmt.Fprintln(out, "\t\t}")
 						fmt.Fprintln(out, "\t\tbody, _ := json.Marshal(resp)")
 						fmt.Fprintln(out, "\t\tw.Write(body)")
 						fmt.Fprintln(out, "\t\treturn")
 						fmt.Fprintln(out, "\t}")
+
+						fmt.Fprintln(out, "\t"+`resp["response"] = user`)
+						fmt.Fprintln(out, "\tbody, _ := json.Marshal(resp)")
+						fmt.Fprintln(out, "\tw.Write(body)")
+						fmt.Fprintln(out, "}")
+						fmt.Fprintln(out)
 					}
-
-					fmt.Fprintln(out, "\tvar v url.Values")
-					fmt.Fprintln(out, "\tswitch r.Method {")
-					fmt.Fprintln(out, "\t"+`case "POST":`)
-					fmt.Fprintln(out, "\t\tv = parseCrutchyBody(r.Body)")
-					fmt.Fprintln(out, "\tdefault:")
-					fmt.Fprintln(out, "\t\tv = r.URL.Query()")
-					fmt.Fprintln(out, "\t}")
-
-					fmt.Fprintln(out, "\tvar params "+currFunc.Name.Name+"Params")
-					fmt.Fprintln(out, "\tif err := params.validateAndFill"+currFunc.Name.Name+"Params(v); err != nil {")
-					fmt.Fprintln(out, "\t\tw.WriteHeader(http.StatusBadRequest)")
-					fmt.Fprintln(out, "\t\t"+`resp["error"] = err.Error()`)
-					fmt.Fprintln(out, "\t\tbody, _ := json.Marshal(resp)")
-					fmt.Fprintln(out, "\t\tw.Write(body)")
-					fmt.Fprintln(out, "\t\treturn")
-					fmt.Fprintln(out, "\t}")
-
-					fmt.Fprintln(out, "\tuser, err := srv."+currFunc.Name.Name+"(r.Context(), params)")
-
-					fmt.Fprintln(out, "\tif err != nil {")
-					fmt.Fprintln(out, "\t\tswitch err.(type) {")
-					fmt.Fprintln(out, "\t\tcase ApiError:")
-					fmt.Fprintln(out, "\t\t\tw.WriteHeader(err.(ApiError).HTTPStatus)")
-					fmt.Fprintln(out, "\t\t\t"+`resp["error"] = err.Error()`)
-					fmt.Fprintln(out, "\t\tdefault:")
-					fmt.Fprintln(out, "\t\t\tw.WriteHeader(http.StatusInternalServerError)")
-					fmt.Fprintln(out, "\t\t\t"+`resp["error"] = "bad user"`)
-					fmt.Fprintln(out, "\t\t}")
-					fmt.Fprintln(out, "\t\tbody, _ := json.Marshal(resp)")
-					fmt.Fprintln(out, "\t\tw.Write(body)")
-					fmt.Fprintln(out, "\t\treturn")
-					fmt.Fprintln(out, "\t}")
-
-					fmt.Fprintln(out, "\t"+`resp["response"] = user`)
-					fmt.Fprintln(out, "\tbody, _ := json.Marshal(resp)")
-					fmt.Fprintln(out, "\tw.Write(body)")
-					fmt.Fprintln(out, "}")
-					fmt.Fprintln(out)
 				}
 			}
 		}
@@ -279,34 +281,63 @@ type MethodSignature struct {
 }
 
 func generateServeHTTP(out *os.File, file *ast.File) {
-	fmt.Fprintln(out, "func (srv *MyApi) ServeHTTP(w http.ResponseWriter, r *http.Request) {")
-	fmt.Fprintln(out, "resp := make(map[string]interface{})")
-	fmt.Fprintln(out, "\tswitch r.URL.Path {")
+	for _, s := range structures {
+		fmt.Fprintln(out, "func (srv *"+s+") ServeHTTP(w http.ResponseWriter, r *http.Request) {")
+		fmt.Fprintln(out, "resp := make(map[string]interface{})")
+		fmt.Fprintln(out, "\tswitch r.URL.Path {")
+		for _, node := range file.Decls {
+			currFunc, ok := node.(*ast.FuncDecl)
+			if !ok {
+				continue
+			}
+			if currFunc.Doc != nil {
+				methodSignature := new(MethodSignature)
+				for _, doc := range currFunc.Doc.List {
+					if strings.Contains(doc.Text, "apigen:api") {
+						start := strings.Index(doc.Text, "{")
+						end := strings.Index(doc.Text, "}") + 1
+						json.Unmarshal([]byte(doc.Text[start:end]), methodSignature)
+						fmt.Fprintln(out, "\t"+`case "`+methodSignature.Url+`":`)
+						fmt.Fprintln(out, "\t\tsrv.handler"+currFunc.Name.Name+"(w, r)")
+					}
+				}
+			}
+		}
+		fmt.Fprintln(out, "\tdefault:")
+		fmt.Fprintln(out, "\t\tw.WriteHeader(http.StatusNotFound)")
+		fmt.Fprintln(out, "\t\t"+`resp["error"] = "unknown method"`)
+		fmt.Fprintln(out, "\t\tbody, _ := json.Marshal(resp)")
+		fmt.Fprintln(out, "\t\tw.Write(body)")
+		fmt.Fprintln(out, "\t}")
+		fmt.Fprintln(out, "}")
+	}
+}
+
+var structures []string
+
+func getNeededStructs(file *ast.File) {
 	for _, node := range file.Decls {
 		currFunc, ok := node.(*ast.FuncDecl)
 		if !ok {
 			continue
 		}
 		if currFunc.Doc != nil {
-			methodSignature := new(MethodSignature)
 			for _, doc := range currFunc.Doc.List {
 				if strings.Contains(doc.Text, "apigen:api") {
-					start := strings.Index(doc.Text, "{")
-					end := strings.Index(doc.Text, "}") + 1
-					json.Unmarshal([]byte(doc.Text[start:end]), methodSignature)
-					fmt.Fprintln(out, "\t"+`case "`+methodSignature.Url+`":`)
-					fmt.Fprintln(out, "\t\tsrv.handler"+currFunc.Name.Name+"(w, r)")
+				LOOP:
+					for _, i := range currFunc.Recv.List {
+						structName := i.Type.(*ast.StarExpr).X.(*ast.Ident)
+						for _, i := range structures {
+							if i == structName.Name {
+								break LOOP
+							}
+						}
+						structures = append(structures, structName.Name)
+					}
 				}
 			}
 		}
 	}
-	fmt.Fprintln(out, "\tdefault:")
-	fmt.Fprintln(out, "\t\tw.WriteHeader(http.StatusNotFound)")
-	fmt.Fprintln(out, "\t\t"+`resp["error"] = "unknown method"`)
-	fmt.Fprintln(out, "\t\tbody, _ := json.Marshal(resp)")
-	fmt.Fprintln(out, "\t\tw.Write(body)")
-	fmt.Fprintln(out, "\t}")
-	fmt.Fprintln(out, "}")
 }
 
 // это кодогенератор
@@ -317,6 +348,8 @@ func main() {
 		log.Fatal(err)
 	}
 	out, _ := os.Create(os.Args[2])
+
+	getNeededStructs(file)
 
 	generateImports(out, file)
 	generateListHelper(out, file)
