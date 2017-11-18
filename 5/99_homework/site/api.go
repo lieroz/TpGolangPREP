@@ -64,7 +64,7 @@ func (ae ApiError) Error() string {
 	return ae.Err.Error()
 }
 
-// apigen:api {"method": "/user/profile", "auth": false}
+// apigen:api {"url": "/user/profile", "auth": false}
 func (srv *MyApi) Profile(ctx context.Context, in ProfileParams) (*User, error) {
 
 	if in.Login == "bad_user" {
@@ -81,7 +81,7 @@ func (srv *MyApi) Profile(ctx context.Context, in ProfileParams) (*User, error) 
 	return user, nil
 }
 
-// apigen:api {"method": "/user/create", "auth": true, "method": "POST"}
+// apigen:api {"url": "/user/create", "auth": true, "method": "POST"}
 func (srv *MyApi) Create(ctx context.Context, in CreateParams) (*NewUser, error) {
 	if in.Login == "bad_username" {
 		return nil, fmt.Errorf("bad user")
