@@ -72,9 +72,12 @@ func (p *CreateParams) validateAndFillCreateParams(args url.Values) (err error) 
 	return nil
 }
 
+
 func (srv *MyApi) handlerProfile(w http.ResponseWriter, r *http.Request) {
 	resp := make(map[string]interface{})
 	resp["error"] = ""
+	
+	
 	var v url.Values
 	switch r.Method {
 	case "POST":
@@ -112,6 +115,7 @@ func (srv *MyApi) handlerProfile(w http.ResponseWriter, r *http.Request) {
 func (srv *MyApi) handlerCreate(w http.ResponseWriter, r *http.Request) {
 	resp := make(map[string]interface{})
 	resp["error"] = ""
+	
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusNotAcceptable)
 		resp["error"] = "bad method"
@@ -119,6 +123,7 @@ func (srv *MyApi) handlerCreate(w http.ResponseWriter, r *http.Request) {
 		w.Write(body)
 		return
 	}
+	
 	if r.Header.Get("X-Auth") != "100500" {
 		w.WriteHeader(http.StatusForbidden)
 		resp["error"] = "unauthorized"
@@ -161,12 +166,15 @@ func (srv *MyApi) handlerCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (srv *MyApi) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-resp := make(map[string]interface{})
+	resp := make(map[string]interface{})
 	switch r.URL.Path {
+	
 	case "/user/profile":
 		srv.handlerProfile(w, r)
+
 	case "/user/create":
 		srv.handlerCreate(w, r)
+
 	default:
 		w.WriteHeader(http.StatusNotFound)
 		resp["error"] = "unknown method"
