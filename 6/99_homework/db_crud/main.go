@@ -5,14 +5,15 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
 	"net/http"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
 	// DSN это соединение с базой
 	// вы можете изменить этот параметр, в тестах соединение будет браться отсюда
-	DSN = "root@tcp(localhost:3360)/golang2017?charset=utf8&interpolateParams=true"
+	DSN = "lieroz:password@tcp(localhost:3306)/test_db?charset=utf8&interpolateParams=true"
 )
 
 func main() {
