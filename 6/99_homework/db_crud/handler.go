@@ -33,6 +33,7 @@ func (mhr *MyHander) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (mhr *MyHander) GetTables(ctx *MyContext, baseResp *MyResponse) {
 	rows, err := mhr.DB.Query("SHOW TABLES")
+	defer rows.Close()
 	if err != nil {
 		baseResp.ServeError(ctx.Writer, http.StatusNotFound, err.Error())
 		return
@@ -64,6 +65,7 @@ func (mhr *MyHander) GetTableEntries(ctx *MyContext, baseResp *MyResponse) {
 		args = append(args, num)
 	}
 	rows, err := mhr.DB.Query(sqlQuery, args...)
+	defer rows.Close()
 	if err != nil {
 		baseResp.ServeError(ctx.Writer, http.StatusNotFound, err.Error())
 		return
@@ -107,6 +109,7 @@ func (mhr *MyHander) GetTableEntry(ctx *MyContext, baseResp *MyResponse) {
 	sqlQuery := "SELECT * FROM %s WHERE id = ?"
 	row := mhr.DB.QueryRow(fmt.Sprintf(sqlQuery, table), id)
 	rows, _ := mhr.DB.Query(fmt.Sprintf(sqlQuery, table), id) // Needed to get columns information, can also be done in NewCrudDB
+	defer rows.Close()
 	cols, _ := rows.Columns()
 	columns := make([]interface{}, len(cols))
 	columnPointers := make([]interface{}, len(cols))
@@ -176,8 +179,8 @@ func (mhr *MyHander) CreateTableEntry(ctx *MyContext, baseResp *MyResponse) {
 func (mhr *MyHander) UpdateTableEntry(ctx *MyContext, baseResp *MyResponse) {
 	record := make(map[string]interface{})
 	body, _ := ioutil.ReadAll(ctx.Request.Body)
+	defer ctx.Request.Body.Close()
 	json.Unmarshal(body, &record)
-	ctx.Request.Body.Close()
 	table := ctx.GetPathVar("table")
 	id, _ := strconv.Atoi(ctx.GetPathVar("id"))
 	sqlQuery := fmt.Sprintf("UPDATE %s SET", table)
