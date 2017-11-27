@@ -217,7 +217,7 @@ func (mhr *MyHander) UpdateTableEntry(ctx *MyContext, baseResp *MyResponse) {
 	sqlQuery = sqlQuery[:len(sqlQuery)-1]
 	sqlQuery += " WHERE id = ?"
 	if _, err := mhr.DB.Exec(sqlQuery, id); err != nil {
-		baseResp.ServeError(ctx.Writer, http.StatusBadRequest, err.Error())
+		baseResp.ServeError(ctx.Writer, http.StatusBadRequest, "error updating entry")
 		return
 	}
 	response := make(map[string]interface{})
