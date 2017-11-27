@@ -193,19 +193,31 @@ func (mhr *MyHander) UpdateTableEntry(ctx *MyContext, baseResp *MyResponse) {
 	id, _ := strconv.Atoi(ctx.GetPathVar("id"))
 	sqlQuery := fmt.Sprintf("UPDATE %s SET", table)
 	for k, v := range record {
+		if k == "id" {
+			baseResp.ServeError(ctx.Writer, http.StatusBadRequest, fmt.Sprintf("field %s have invalid type", k))
+			return
+		}
 		switch v.(type) {
 		case float64:
+			if k == "updated" || k == "title" {
+				baseResp.ServeError(ctx.Writer, http.StatusBadRequest, fmt.Sprintf("field %s have invalid type", k))
+				return
+			}
 			sqlQuery += fmt.Sprintf(" %s = %f,", k, v)
 		case string:
 			sqlQuery += fmt.Sprintf(" %s = '%s',", k, v)
 		default:
+			if k == "title" {
+				baseResp.ServeError(ctx.Writer, http.StatusBadRequest, fmt.Sprintf("field %s have invalid type", k))
+				return
+			}
 			sqlQuery += fmt.Sprintf(" %s = NULL,", k)
 		}
 	}
 	sqlQuery = sqlQuery[:len(sqlQuery)-1]
 	sqlQuery += " WHERE id = ?"
 	if _, err := mhr.DB.Exec(sqlQuery, id); err != nil {
-		baseResp.ServeError(ctx.Writer, http.StatusNotFound, "error updating entity")
+		baseResp.ServeError(ctx.Writer, http.StatusBadRequest, err.Error())
 		return
 	}
 	response := make(map[string]interface{})
