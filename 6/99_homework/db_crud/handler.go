@@ -15,6 +15,33 @@ type MyHander struct {
 	Router *MyRouter
 }
 
+func mapDatabaseResult(rows *sql.Rows) map[string]interface{} {
+	cols, _ := rows.Columns()
+	columns := make([]interface{}, len(cols))
+	columnPointers := make([]interface{}, len(cols))
+	for i := range columns {
+		columnPointers[i] = &columns[i]
+	}
+	rows.Scan(columnPointers...)
+	m := make(map[string]interface{})
+	for i, colName := range cols {
+		val := columnPointers[i].(*interface{})
+		m[colName] = *val
+	}
+	for k, v := range m {
+		if v != nil {
+			if k == "id" {
+				m[k], _ = strconv.Atoi(string(v.([]uint8)))
+			} else {
+				m[k] = string(v.([]uint8))
+			}
+		} else {
+			m[k] = nil
+		}
+	}
+	return m
+}
+
 func (mhr *MyHander) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx, baseResp := CreateContext(w, r), NewResponse()
 	splittedPath := strings.Split(r.URL.Path[1:], "/")
@@ -70,32 +97,9 @@ func (mhr *MyHander) GetTableEntries(ctx *MyContext, baseResp *MyResponse) {
 		baseResp.ServeError(ctx.Writer, http.StatusNotFound, err.Error())
 		return
 	}
-	cols, _ := rows.Columns()
 	var records []interface{}
 	for rows.Next() {
-		columns := make([]interface{}, len(cols))
-		columnPointers := make([]interface{}, len(cols))
-		for i := range columns {
-			columnPointers[i] = &columns[i]
-		}
-		rows.Scan(columnPointers...)
-		m := make(map[string]interface{})
-		for i, colName := range cols {
-			val := columnPointers[i].(*interface{})
-			m[colName] = *val
-		}
-		for k, v := range m {
-			if v != nil {
-				if k == "id" {
-					m[k], _ = strconv.Atoi(string(v.([]uint8)))
-				} else {
-					m[k] = string(v.([]uint8))
-				}
-			} else {
-				m[k] = nil
-			}
-		}
-		records = append(records, m)
+		records = append(records, mapDatabaseResult(rows))
 	}
 	response := make(map[string]interface{})
 	response["records"] = records
@@ -107,37 +111,14 @@ func (mhr *MyHander) GetTableEntry(ctx *MyContext, baseResp *MyResponse) {
 	table := ctx.GetPathVar("table")
 	id, _ := strconv.Atoi(ctx.GetPathVar("id"))
 	sqlQuery := "SELECT * FROM %s WHERE id = ?"
-	row := mhr.DB.QueryRow(fmt.Sprintf(sqlQuery, table), id)
-	rows, _ := mhr.DB.Query(fmt.Sprintf(sqlQuery, table), id) // Needed to get columns information, can also be done in NewCrudDB
+	rows, _ := mhr.DB.Query(fmt.Sprintf(sqlQuery, table), id)
 	defer rows.Close()
-	cols, _ := rows.Columns()
-	columns := make([]interface{}, len(cols))
-	columnPointers := make([]interface{}, len(cols))
-	for i := range columns {
-		columnPointers[i] = &columns[i]
-	}
-	if err := row.Scan(columnPointers...); err != nil {
+	if !rows.Next() {
 		baseResp.ServeError(ctx.Writer, http.StatusNotFound, "record not found")
 		return
 	}
-	m := make(map[string]interface{})
-	for i, colName := range cols {
-		val := columnPointers[i].(*interface{})
-		m[colName] = *val
-	}
-	for k, v := range m {
-		if v != nil {
-			if k == "id" {
-				m[k], _ = strconv.Atoi(string(v.([]uint8)))
-			} else {
-				m[k] = string(v.([]uint8))
-			}
-		} else {
-			m[k] = nil
-		}
-	}
 	response := make(map[string]interface{})
-	response["record"] = m
+	response["record"] = mapDatabaseResult(rows)
 	baseResp.Body["response"] = response
 	baseResp.ServeSuccess(ctx.Writer, http.StatusOK)
 }
