@@ -76,7 +76,7 @@ func logContextTimings(ctx context.Context, path string, start time.Time) {
 func timingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		ctx = context.WithValue(,
+		ctx = context.WithValue(ctx,
 			timingsKey,
 			&ctxTimings{
 				Data: make(map[string]*Timing),

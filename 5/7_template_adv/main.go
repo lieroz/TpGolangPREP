@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"net/http"
 
-	"coursera/template_adv/item"
-	"coursera/template_adv/template"
+	"golang-2017-2/5/7_template_adv/item"
+	"golang-2017-2/5/7_template_adv/template"
 )
 
 //go:generate hero -source=./template/
 
 var ExampleItems = []*item.Item{
-	&item.Item{1, "rvasily", "Mail.ru Group"},
-	&item.Item{2, "username", "freelancer"},
+	&item.Item{1, "rvasily", "Mail.ru Group -> Mail & Portal -> Mail"},
+	&item.Item{2, "dmitrydorofeev", "Mail.ru Group -> Mail & Portal -> BeepCar"},
 }
 
 func main() {

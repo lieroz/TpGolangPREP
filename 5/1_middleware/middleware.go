@@ -24,7 +24,7 @@ func loginPage(w http.ResponseWriter, r *http.Request) {
 	expiration := time.Now().Add(10 * time.Hour)
 	cookie := http.Cookie{
 		Name:    "session_id",
-		Value:   "rvasily",
+		Value:   "Dmitry",
 		Expires: expiration,
 	}
 	http.SetCookie(w, &cookie)
@@ -137,6 +137,6 @@ func main() {
 	siteHandler := accessLogMiddleware(siteMux)
 	siteHandler = panicMiddleware(siteHandler)
 
-	fmt.Println("starting server at :8080")
+	fmt.Println("starting server at http://127.0.0.1:8080")
 	http.ListenAndServe(":8080", siteHandler)
 }
