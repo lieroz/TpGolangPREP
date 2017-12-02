@@ -1,8 +1,8 @@
 
 FROM golang:alpine
 
-COPY . /go/src/golang-test
+COPY . /go/src/go-docker
 
-RUN go install golang-test
+RUN go install go-docker
 
-CMD golang-test
+CMD [ "go-docker" ]

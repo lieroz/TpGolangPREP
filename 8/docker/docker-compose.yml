@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  dockergo:
+    image: docker-go:1.0.0
+
+  nginx:
+    image: nginx
+    links:
+      - dockergo:dockergo
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    ports:
+      - 8080:80

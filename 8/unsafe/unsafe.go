@@ -32,7 +32,7 @@ func main() {
 
 	msg := Message{
 		flag1: false,
-		name:  "Neque porro quisquam est qui dolorem gkgkgkkgjgkjkj ",
+		name:  "Neque porro quisquam est qui dolorem gkgkgkkgjgkjkj nslknadnlkfdnlklnkef",
 		flag2: false,
 	}
 

@@ -17,6 +17,7 @@ func main() {
 	prometheus.MustRegister(fooCount)
 
 	http.Handle("/metrics", promhttp.Handler())
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fooCount.Add(1)
 		fmt.Fprintf(w, "foo_total increased")

@@ -106,7 +106,7 @@ func (tm *TimingMiddleware) logContextTimings(ctx context.Context, path string, 
 	}
 
 	tm.StatsReciever.Increment(prefix + "hits")
-	tm.StatsReciever.Timing(prefixx+"tracked", uint64(totalReal/time.Millisecond))
+	tm.StatsReciever.Timing(prefix+"tracked", uint64(totalReal/time.Millisecond))
 	tm.StatsReciever.Timing(prefix+"real_time", uint64(total/time.Millisecond))
 }
 

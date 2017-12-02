@@ -4,27 +4,28 @@ import (
 	"fmt"
 )
 
-// MyStruct - my structure
-type MyStruct struct {
+type myStruct struct {
 	userID   int
 	DataJSON []byte
 }
 
-// TestError func
-func TestError(isOk bool) error {
+func testError(isOk bool) error {
 	if !isOk {
-		fmt.Errorf("failed")
+		return fmt.Errorf("failed")
 	}
 	return nil
 }
 
-// Test fff
-func Test() {
+func test() {
 	flag := true
-	result := TestError(flag)
-	fmt.Printf("result is\n", result)
-	fmt.Printf("%v is %v", flag)
+	result := testError(flag)
+	fmt.Printf("result is %s\n", result)
+	fmt.Printf("%v is %v", flag, result)
 
-	s := &MyStruct{}
-	fmt.Println(s)
+	s := &myStruct{}
+	fmt.Println(s.userID)
+}
+
+func main() {
+	test()
 }
