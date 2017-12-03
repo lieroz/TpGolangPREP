@@ -37,12 +37,16 @@ func Update(w http.ResponseWriter, r *http.Request) {
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", List)
+
 	r.HandleFunc("/users", List).
 		Host("localhost")
-	r.HandleFunc("/users", Create).
+
+	r.HandleFunc("/users", Update).
 		Methods("PUT")
+
 	r.HandleFunc("/users/{id:[0-9]+}", Get)
-	r.HandleFunc("/users/{login}", Update).
+
+	r.HandleFunc("/users/{login}", Create).
 		Methods("POST").
 		Headers("X-Auth", "test")
 

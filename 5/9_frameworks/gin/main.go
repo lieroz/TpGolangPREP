@@ -35,7 +35,8 @@ func main() {
 	//	  "manu": "123",
 	//}))
 	authorized := r.Group("/", gin.BasicAuth(gin.Accounts{
-		"rvasily": "100500", // user:rvasily password:`100500`
+		"rvasily": "100500",         // user:rvasily password:`100500`
+		"dmitry":  "longlongstring", // user:dmitry password:`longlongstring`
 	}))
 
 	authorized.GET("admin", func(c *gin.Context) {
