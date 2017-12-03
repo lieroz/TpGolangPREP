@@ -317,7 +317,7 @@ assignee: @ppetrov`,
 /assign_2
 
 3. прийти на хакатон by @ivanov
-/assign_2`,
+/assign_3`,
 			},
 		},
 		{
@@ -329,7 +329,7 @@ assignee: я
 /unassign_2  /resolve_2
 
 3. прийти на хакатон by @ivanov
-/assign_2`,
+/assign_3`,
 			},
 		},
 		{
@@ -349,7 +349,7 @@ assignee: я
 			"/owner",
 			map[int]string{
 				Ivanov: `3. прийти на хакатон by @ivanov
-/assign_2`,
+/assign_3`,
 			},
 		},
 	}
