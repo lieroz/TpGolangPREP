@@ -10,9 +10,14 @@ const (
 	taskDoneResponse               = `Задача "%s" выполнена`
 	taskDoneByResponse             = `Задача "%s" выполнена @%s`
 
-	assigneeMe       = `assignee: я`
-	assigneeUser     = `assignee: @%s`
-	assignedFormat   = `assign_%d`
-	unassignedFormat = `unassign_%d`
-	resolveFormat    = `resolve_%d`
+	assigneeMe     = `assignee: я`
+	assigneeUser   = `assignee: @%s`
+	assignFormat   = `/assign_%d`
+	unassignFormat = `/unassign_%d`
+	resolveFormat  = `/resolve_%d`
 )
+
+type Response struct {
+	ChatID  int64
+	Message string
+}

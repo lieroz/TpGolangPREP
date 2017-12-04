@@ -13,20 +13,15 @@ type Task struct {
 }
 
 var (
-	taskID int
-	mutex  sync.Mutex
+	taskID    int
+	taskMutex sync.Mutex
 
-	users []*tgbotapi.User
 	tasks []*Task
 )
 
-func AddUser(user *tgbotapi.User) {
-	users = append(users, user)
-}
-
 func AddTask(descr string, user *tgbotapi.User) {
-	m.Lock()
+	taskMutex.Lock()
 	taskID++
 	tasks = append(tasks, &Task{ID: taskID, Description: descr, CreatedBy: user})
-	m.Unlock()
+	taskMutex.Unlock()
 }
