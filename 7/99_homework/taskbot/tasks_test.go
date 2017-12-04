@@ -59,7 +59,7 @@ func (srv *TDS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		srv.Answers[chatID] = text
 		srv.Unlock()
 
-		fmt.Println("TDS sendMessage", chatID, text)
+		//fmt.Println("TDS sendMessage", chatID, text)
 	})
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -211,10 +211,12 @@ func TestTasks(t *testing.T) {
 			"/assign_1",
 			map[int]string{
 				Alexandrov: `Задача "написать бота" назначена на вас`,
+				Ivanov:     `Задача "написать бота" назначена на @aalexandrov`,
 			},
 		},
 		{
 			// в случае если задача была назначена на кого-то - он получает уведомление об этом
+			// в данном случае она была назначена на Alexandrov, поэтому ему отправляется уведомление
 			Petrov,
 			"/assign_1",
 			map[int]string{
@@ -289,7 +291,7 @@ assignee: @ppetrov`,
 			Petrov,
 			"/tasks",
 			map[int]string{
-				Petrov: `нет задач`,
+				Petrov: `Нет задач`,
 			},
 		},
 
@@ -298,7 +300,7 @@ assignee: @ppetrov`,
 			Petrov,
 			"/new сделать ДЗ по курсу",
 			map[int]string{
-				Ivanov: `Задача "сделать ДЗ по курсу" создана, id=2`,
+				Petrov: `Задача "сделать ДЗ по курсу" создана, id=2`,
 			},
 		},
 		{
@@ -321,12 +323,22 @@ assignee: @ppetrov`,
 			},
 		},
 		{
+			// повтор
+			// в случае если задача была назначена на кого-то - автор получает уведомление об этом
+			// если он автор задачи - ему не приходит дополнительного уведомления о том что она назначена на кого-то
+			Petrov,
+			"/assign_2",
+			map[int]string{
+				Petrov: `Задача "сделать ДЗ по курсу" назначена на вас`,
+			},
+		},
+		{
 			Petrov,
 			"/tasks",
 			map[int]string{
 				Petrov: `2. сделать ДЗ по курсу by @ppetrov
 assignee: я
-/unassign_2  /resolve_2
+/unassign_2 /resolve_2
 
 3. прийти на хакатон by @ivanov
 /assign_3`,
@@ -339,7 +351,7 @@ assignee: я
 			"/my",
 			map[int]string{
 				Petrov: `2. сделать ДЗ по курсу by @ppetrov
-/unassign_2  /resolve_2`,
+/unassign_2 /resolve_2`,
 			},
 		},
 		{
