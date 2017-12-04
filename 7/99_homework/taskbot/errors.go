@@ -5,6 +5,9 @@ import (
 )
 
 var (
-	ErrNoCommand = errors.New("нет такой команды...")
-	ErrNoTask    = errors.New("нет задачи с таким идентификатором...")
+	errNoCommand = errors.New("Нет такой команды")
+	errNoTask    = errors.New("Нет задачи с таким идентификатором")
+
+	errNoTasks     = errors.New("Нет задач")
+	errTaskNotYour = errors.New("Задача не на вас")
 )

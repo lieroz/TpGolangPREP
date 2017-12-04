@@ -124,5 +124,5 @@ func ProcessChannelUpdate(update tgbotapi.Update) error {
 			return nil
 		}
 	}
-	return ErrNoCommand
+	return errNoCommand
 }
