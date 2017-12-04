@@ -59,7 +59,7 @@ func (srv *TDS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		srv.Answers[chatID] = text
 		srv.Unlock()
 
-		fmt.Println("TDS sendMessage", chatID, text)
+		//fmt.Println("TDS sendMessage", chatID, text)
 	})
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
