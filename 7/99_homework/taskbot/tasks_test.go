@@ -211,6 +211,7 @@ func TestTasks(t *testing.T) {
 			"/assign_1",
 			map[int]string{
 				Alexandrov: `Задача "написать бота" назначена на вас`,
+				Ivanov:     `Задача "написать бота" назначена на @aalexandrov`,
 			},
 		},
 		{
@@ -290,7 +291,7 @@ assignee: @ppetrov`,
 			Petrov,
 			"/tasks",
 			map[int]string{
-				Petrov: `нет задач`,
+				Petrov: `Нет задач`,
 			},
 		},
 
@@ -299,7 +300,7 @@ assignee: @ppetrov`,
 			Petrov,
 			"/new сделать ДЗ по курсу",
 			map[int]string{
-				Ivanov: `Задача "сделать ДЗ по курсу" создана, id=2`,
+				Petrov: `Задача "сделать ДЗ по курсу" создана, id=2`,
 			},
 		},
 		{
@@ -327,10 +328,20 @@ assignee: @ppetrov`,
 			map[int]string{
 				Petrov: `2. сделать ДЗ по курсу by @ppetrov
 assignee: я
-/unassign_2  /resolve_2
+/unassign_2 /resolve_2
 
 3. прийти на хакатон by @ivanov
 /assign_3`,
+			},
+		},
+		{
+			// повтор
+			// в случае если задача была назначена на кого-то - автор получает уведомление об этом
+			// если он автор задачи - ему не приходит дополнительного уведомления о том что она назначена на кого-то
+			Petrov,
+			"/assign_1",
+			map[int]string{
+				Petrov: `Задача "написать бота" назначена на вас`,
 			},
 		},
 		{
@@ -340,7 +351,7 @@ assignee: я
 			"/my",
 			map[int]string{
 				Petrov: `2. сделать ДЗ по курсу by @ppetrov
-/unassign_2  /resolve_2`,
+/unassign_2 /resolve_2`,
 			},
 		},
 		{
