@@ -21,8 +21,8 @@ import (
 func init() {
 	// upd global var for testing
 	// we use patched version of gopkg.in/telegram-bot-api.v4 ( WebhookURL const -> var)
-	WebhookURL = "http://127.0.0.1:8081"
-	BotToken = "_golangcourse_test"
+	BotToken = "449014674:AAFuxx-aARxHr3aVC4TDemZIfh0U476m40U"
+	WebhookURL = "https://ae36e2b3.ngrok.io"
 }
 
 var (
@@ -130,7 +130,7 @@ func SendMsgToBot(userID int, text string) error {
 
 	user, ok := users[userID]
 	if !ok {
-		return fmt.Errorf("no user %s", userID)
+		return fmt.Errorf("no user %d", userID)
 	}
 
 	upd := &tgbotapi.Update{
@@ -375,7 +375,7 @@ assignee: я
 		caseName := fmt.Sprintf("[case%d, %d: %s]", idx, item.user, item.command)
 		err := SendMsgToBot(item.user, item.command)
 		if err != nil {
-			t.Fatalf("% SendMsgToBot error: %s", caseName, err)
+			t.Fatalf("%s SendMsgToBot error: %s", caseName, err)
 		}
 		// give TDS time to process request
 		time.Sleep(10 * time.Millisecond)
