@@ -24,23 +24,9 @@ var (
 )
 
 var (
-	m      sync.RWMutex
-	taskID int
+	m sync.RWMutex
+	// taskID int
 )
-
-type User struct {
-	ID       int
-	UserName string
-}
-
-type Task struct {
-	ID          int
-	Description string
-	CreatedBy   User
-	AssignedTo  *User
-}
-
-var tasks []*Task
 
 func getAllTasks() string {
 	if len(tasks) == 0 {
@@ -133,8 +119,6 @@ func startTaskBot(ctx context.Context) error {
 	fmt.Println("server started on port 8080")
 
 	for update := range updates {
-		fmt.Println(update.Message.From)
-		fmt.Println(update.Message.From.ID)
 		result := processMessage(update.Message)
 		bot.Send(tgbotapi.NewMessage(
 			update.Message.Chat.ID,
