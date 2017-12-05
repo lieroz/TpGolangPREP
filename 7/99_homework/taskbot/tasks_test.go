@@ -21,8 +21,7 @@ import (
 func init() {
 	// upd global var for testing
 	// we use patched version of gopkg.in/telegram-bot-api.v4 ( WebhookURL const -> var)
-	BotToken = "449014674:AAFuxx-aARxHr3aVC4TDemZIfh0U476m40U"
-	WebhookURL = "https://7644ddf1.ngrok.io"
+	getEnvVars()
 }
 
 var (

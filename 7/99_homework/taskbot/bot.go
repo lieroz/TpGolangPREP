@@ -12,8 +12,9 @@ import (
 
 var (
 	// @BotFather gives you this
-	BotToken   = "449014674:AAFuxx-aARxHr3aVC4TDemZIfh0U476m40U"
-	WebhookURL = "https://7644ddf1.ngrok.io"
+	BotToken   string // "449014674:AAFuxx-aARxHr3aVC4TDemZIfh0U476m40U"
+	WebhookURL string // "https://7644ddf1.ngrok.io"
+	Port       string
 )
 
 func startTaskBot(ctx context.Context) error {
@@ -31,9 +32,9 @@ func startTaskBot(ctx context.Context) error {
 
 	updates := bot.ListenForWebhook("/")
 
-	server := &http.Server{Addr: ":8080", Handler: nil}
+	server := &http.Server{Addr: Port, Handler: nil}
 	go server.ListenAndServe()
-	fmt.Println("server started on port 8080")
+	fmt.Println("server started on port " + Port)
 
 	c, finish := context.WithCancel(ctx)
 	go func() {
@@ -75,7 +76,15 @@ func startTaskBot(ctx context.Context) error {
 	return nil
 }
 
+func getEnvVars() {
+	BotToken = os.Getenv("TOKEN")
+	WebhookURL = os.Getenv("URL")
+	Port = os.Getenv("PORT")
+}
+
 func main() {
+	getEnvVars()
+
 	err := startTaskBot(context.Background())
 	if err != nil {
 		panic(err)
