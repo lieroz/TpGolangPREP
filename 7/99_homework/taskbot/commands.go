@@ -65,6 +65,13 @@ func NewCreateTaskCommand() Command {
 
 func (c *CreateTaskCommand) Execute(command string, message *tgbotapi.Message) []*Response {
 	var responses []*Response
+
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
+
 	task := strings.TrimLeft(message.Text, command)[1:]
 	AddTask(task, message.From)
 	msg := fmt.Sprintf(taskCreatedResponse, task, taskID)

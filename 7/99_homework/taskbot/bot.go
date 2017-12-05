@@ -79,7 +79,7 @@ func startTaskBot(ctx context.Context) error {
 func getEnvVars() {
 	BotToken = os.Getenv("TOKEN")
 	WebhookURL = os.Getenv("URL")
-	Port = os.Getenv("PORT")
+	Port = ":" + os.Getenv("PORT")
 }
 
 func main() {
