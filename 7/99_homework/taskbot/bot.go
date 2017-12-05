@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"gopkg.in/telegram-bot-api.v4"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 var (
@@ -28,8 +31,31 @@ func startTaskBot(ctx context.Context) error {
 
 	updates := bot.ListenForWebhook("/")
 
-	go http.ListenAndServe(":8080", nil)
+	server := &http.Server{Addr: ":8080", Handler: nil}
+	go server.ListenAndServe()
 	fmt.Println("server started on port 8080")
+
+	c, finish := context.WithCancel(ctx)
+	go func() {
+		select {
+		case <-c.Done():
+			server.Shutdown(ctx)
+			os.Exit(0)
+		}
+	}()
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT)
+
+	go func() {
+		for {
+			s := <-sigChan
+			switch s {
+			case syscall.SIGINT:
+				finish()
+			}
+		}
+	}()
 
 	for update := range updates {
 		responses, err := ProcessChannelUpdate(update)
