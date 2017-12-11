@@ -337,6 +337,9 @@ func TestSinglePlayer(t *testing.T) {
 			t.Fatalf("startGameBot error: %s", err)
 		}
 	}()
+	
+	// give server time to start
+    time.Sleep(10 * time.Millisecond)
 
 	for _, gameSession := range singlePlayerCases {
 
